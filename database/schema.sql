@@ -1,0 +1,2 @@
+-- RESOLVA — Plataforma de Gestão de Serviços Técnicos
+-- Criar tabelas após validar o DER.
