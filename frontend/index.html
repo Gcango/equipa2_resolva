@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Resolva — gestão simples de serviços técnicos." />
+  <title>Resolva · Gestão de serviços técnicos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#inicio" aria-label="Resolva - início"><span class="brand-mark">r</span><span>resolva<span class="dot">.</span></span></a>
+      <div class="profile-card"><div class="avatar">MC</div><div><strong>Maria Costa</strong><small>Cliente</small></div><button class="icon-button" aria-label="Abrir opções">•••</button></div>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <p class="nav-label">MENU PRINCIPAL</p>
+        <a class="nav-link active" href="#inicio" data-view="inicio"><span>⌂</span> Visão geral</a>
+        <a class="nav-link" href="#pedidos" data-view="pedidos"><span>▤</span> Os meus pedidos <b class="nav-count">3</b></a>
+        <a class="nav-link" href="#orcamentos" data-view="orcamentos"><span>◇</span> Orçamentos</a>
+        <a class="nav-link" href="#mensagens" data-view="mensagens"><span>◌</span> Mensagens <b class="nav-count">2</b></a>
+        <p class="nav-label second">CONTA</p>
+        <a class="nav-link" href="#perfil" data-view="perfil"><span>◎</span> Meu perfil</a>
+        <a class="nav-link" href="#definicoes" data-view="definicoes"><span>⚙</span> Definições</a>
+      </nav>
+      <div class="help-card"><div class="help-icon">?</div><strong>Precisa de ajuda?</strong><p>Estamos aqui para ajudar.</p><button>Falar connosco <span>→</span></button></div>
+      <div class="sidebar-footer"><span>© 2024 Resolva</span><a href="#privacidade">Privacidade</a></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar"><button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu">☰</button><div class="breadcrumb"><span>Resolva</span><b>/</b><strong>Visão geral</strong></div><div class="top-actions"><button class="notification" aria-label="Notificações">♧<i></i></button><div class="top-avatar">MC</div></div></header>
+      <div class="page" id="app">
+        <section class="view" data-page="inicio">
+          <div class="welcome-row"><div><p class="eyebrow">QUARTA-FEIRA, 18 DE SETEMBRO</p><h1>Bom dia, Maria <span>✦</span></h1><p class="subtitle">Aqui está o resumo dos seus serviços.</p></div><button class="primary-button" id="new-request"><span>＋</span> Novo pedido</button></div>
+          <div class="stats-grid"><article class="stat-card"><div class="stat-icon coral">▤</div><div><span>Pedidos ativos</span><strong>03</strong><small class="up">↑ 1 este mês</small></div></article><article class="stat-card"><div class="stat-icon lavender">◇</div><div><span>Orçamentos pendentes</span><strong>01</strong><small>Requer a sua atenção</small></div></article><article class="stat-card"><div class="stat-icon mint">✓</div><div><span>Serviços concluídos</span><strong>12</strong><small class="up">↑ 8% este mês</small></div></article></div>
+          <div class="content-grid"><section class="panel requests-panel"><div class="panel-heading"><div><h2>Pedidos recentes</h2><p>Acompanhe o estado dos seus pedidos.</p></div><a href="#pedidos" data-view="pedidos">Ver todos <span>→</span></a></div><div class="request-list"><article class="request-row"><div class="service-icon plumbing">⌁</div><div class="request-info"><strong>Reparação de canalização</strong><span>Pedido #RS-1048 · 16 Set 2024</span></div><span class="status progress"><i></i> Em andamento</span><button class="row-arrow" aria-label="Ver pedido">→</button></article><article class="request-row"><div class="service-icon electrical">ϟ</div><div class="request-info"><strong>Instalação elétrica</strong><span>Pedido #RS-1045 · 12 Set 2024</span></div><span class="status waiting"><i></i> A aguardar orçamento</span><button class="row-arrow" aria-label="Ver pedido">→</button></article><article class="request-row"><div class="service-icon repair">✥</div><div class="request-info"><strong>Montagem de móveis</strong><span>Pedido #RS-1039 · 08 Set 2024</span></div><span class="status scheduled"><i></i> Agendado</span><button class="row-arrow" aria-label="Ver pedido">→</button></article></div></section><aside class="panel appointment-panel"><div class="panel-heading"><div><h2>Próximo serviço</h2><p>O seu próximo agendamento.</p></div><span class="calendar-icon">▣</span></div><div class="appointment-date"><div class="date-block"><b>24</b><span>SET</span></div><div><strong>Reparação de canalização</strong><span>Terça-feira, 10:00 — 11:30</span></div></div><div class="technician"><div class="tech-avatar">JA</div><div><span>O seu técnico</span><strong>João Alves <em>● Verificado</em></strong></div><button class="message-btn" aria-label="Enviar mensagem">◌</button></div><button class="outline-button">Ver detalhes do serviço <span>→</span></button></aside></div>
+          <section class="tip-banner"><div class="tip-illustration">✦</div><div><strong>Resolva sem complicações.</strong><p>Descreva o que precisa e nós encontramos o profissional certo para si.</p></div><button class="tip-action" id="tip-action">Pedir um serviço <span>→</span></button></section>
+        </section>
+        <section class="view hidden" data-page="pedidos"><div class="simple-header"><div><p class="eyebrow">SERVIÇOS</p><h1>Os meus pedidos</h1><p class="subtitle">Consulte e acompanhe todos os seus pedidos.</p></div><button class="primary-button" id="new-request-2"><span>＋</span> Novo pedido</button></div><div class="panel full-panel"><div class="filter-row"><h2>Todos os pedidos <span class="muted">3</span></h2><select id="status-filter"><option value="all">Todos os estados</option><option value="progress">Em andamento</option><option value="waiting">A aguardar orçamento</option><option value="scheduled">Agendado</option></select></div><div class="request-list all-requests"></div></div></section>
+        <section class="view hidden" data-page="orcamentos"><div class="simple-header"><div><p class="eyebrow">FINANCEIRO</p><h1>Orçamentos</h1><p class="subtitle">Reveja e aceite os orçamentos dos seus serviços.</p></div></div><div class="empty-state panel"><div>◇</div><h2>Um orçamento aguarda a sua atenção</h2><p>Quando um profissional enviar um orçamento, poderá consultá-lo e decidir aqui.</p><button class="primary-button" data-view="pedidos">Ver pedidos</button></div></section>
+        <section class="view hidden" data-page="mensagens"><div class="simple-header"><div><p class="eyebrow">COMUNICAÇÃO</p><h1>Mensagens</h1><p class="subtitle">Fale diretamente com os seus técnicos.</p></div></div><div class="empty-state panel"><div>◌</div><h2>As suas conversas aparecem aqui</h2><p>Tem 2 mensagens novas relacionadas com o pedido RS-1048.</p><button class="primary-button">Abrir conversa</button></div></section>
+      </div>
+    </main>
+  </div>
+  <div class="modal-backdrop hidden" id="modal"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="close-modal" aria-label="Fechar">×</button><p class="eyebrow">NOVO PEDIDO</p><h2 id="modal-title">O que precisa de resolver?</h2><p class="modal-intro">Conte-nos o que aconteceu e encontraremos o profissional ideal.</p><form id="request-form"><label>Categoria<select required><option value="">Selecione uma categoria</option><option>Canalização</option><option>Eletricidade</option><option>Montagem e reparações</option><option>Limpeza</option></select></label><label>Descreva o serviço<textarea required placeholder="Ex.: Preciso de reparar uma torneira que está a pingar..."></textarea></label><label>Morada<input required placeholder="Rua, número e localidade" /></label><button class="primary-button full-button" type="submit">Enviar pedido <span>→</span></button></form></div></div>
+  <div class="toast hidden" id="toast">✓ Pedido enviado com sucesso!</div>
+  <script src="app.js"></script>
+</body>
+</html>
