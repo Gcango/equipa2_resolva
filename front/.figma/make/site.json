@@ -1,0 +1,10 @@
+{
+  "description": "Offers a streamlined platform to redesign and modernize existing websites, enhancing user experience and visual appeal for businesses and individuals.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
