@@ -2,12 +2,67 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// ======================================================
+// CONFIGURAÇÃO DAS FOTOGRAFIAS DOS PEDIDOS
+// ======================================================
+
+// Criar a pasta onde ficam guardadas as imagens
+const pastaImagens = path.join(__dirname, 'uploads', 'pedidos');
+
+if (!fs.existsSync(pastaImagens)) {
+    fs.mkdirSync(pastaImagens, { recursive: true });
+}
+
+// Definir onde e com que nome guardar cada imagem
+const armazenamento = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, pastaImagens);
+    },
+
+    filename: (req, file, cb) => {
+        const nomeUnico =
+            Date.now() + '-' +
+            Math.round(Math.random() * 1e9);
+
+        cb(null, nomeUnico + path.extname(file.originalname).toLowerCase());
+    }
+});
+
+// Aceitar apenas imagens e limitar a 5 MB
+const uploadImagem = multer({
+    storage: armazenamento,
+
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    },
+
+    fileFilter: (req, file, cb) => {
+        const tiposPermitidos = [
+            'image/jpeg',
+            'image/png',
+            'image/webp'
+        ];
+
+        if (tiposPermitidos.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas imagens JPG, PNG ou WEBP.'));
+        }
+    }
+});
+
+// Permitir consultar as imagens através do backend
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ======================================================
 // TESTE DA API
@@ -479,7 +534,7 @@ app.post('/api/register', async (req, res) => {
         if (connection) {
             try {
                 await connection.rollback();
-            } catch {}
+            } catch { }
         }
 
 
@@ -567,8 +622,75 @@ app.get('/api/pedidos', async (req, res) => {
     }
 });
 
+// ======================================================
+// GET - OBTER UM PEDIDO COM FOTOGRAFIAS
+// ======================================================
+
+app.get('/api/pedidos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Procurar o pedido
+        const [pedidos] = await db.query(`
+            SELECT
+                p.id,
+                p.cliente_id,
+                p.categoria_id,
+                u.nome AS cliente,
+                c.nome AS categoria,
+                p.descricao,
+                p.morada,
+                p.cidade,
+                p.data,
+                p.status,
+                p.prioridade,
+                p.tecnico_id,
+                tecnico_user.nome AS tecnico
+            FROM pedidos p
+            INNER JOIN utilizadores u
+                ON p.cliente_id = u.id
+            INNER JOIN categorias c
+                ON p.categoria_id = c.id
+            LEFT JOIN tecnicos t
+                ON p.tecnico_id = t.id
+            LEFT JOIN utilizadores tecnico_user
+                ON t.utilizador_id = tecnico_user.id
+            WHERE p.id = ?
+        `, [id]);
+
+        if (pedidos.length === 0) {
+            return res.status(404).json({
+                erro: 'Pedido não encontrado.'
+            });
+        }
+
+        // Procurar fotografias associadas ao pedido
+        const [fotografias] = await db.query(`
+            SELECT
+                id,
+                caminho
+            FROM fotos_pedidos
+            WHERE pedido_id = ?
+            ORDER BY id
+        `, [id]);
+
+        // Devolver o pedido com as fotografias
+        res.json({
+            ...pedidos[0],
+            fotos: fotografias.map(foto => foto.caminho)
+        });
+
+    } catch (erro) {
+        console.error('Erro ao obter pedido:', erro);
+
+        res.status(500).json({
+            erro: 'Erro ao obter o pedido.'
+        });
+    }
+});
+
 // Criar novo pedido
-app.post('/api/pedidos', async (req, res) => {
+app.post('/api/pedidos', uploadImagem.single('imagem'), async (req, res) => {
     try {
         const {
             cliente_id,
@@ -640,9 +762,22 @@ app.post('/api/pedidos', async (req, res) => {
             tecnico_id || null
         ]);
 
+        // Guardar fotografia associada ao pedido
+        if (req.file) {
+            const caminhoImagem = `/uploads/pedidos/${req.file.filename}`;
+
+            await db.query(`
+        INSERT INTO fotos_pedidos (pedido_id, caminho)
+        VALUES (?, ?)
+    `, [novoId, caminhoImagem]);
+        }
+
         res.status(201).json({
             id: novoId,
-            mensagem: 'Pedido criado com sucesso.'
+            mensagem: 'Pedido criado com sucesso.',
+            imagem: req.file
+                ? `/uploads/pedidos/${req.file.filename}`
+                : null
         });
 
     } catch (erro) {
@@ -1155,7 +1290,7 @@ app.delete('/api/categorias/:id', async (req, res) => {
         if (connection) {
             try {
                 await connection.rollback();
-            } catch {}
+            } catch { }
         }
 
         console.error('Erro ao eliminar categoria:', erro);
@@ -1574,7 +1709,7 @@ app.post('/api/tecnicos', async (req, res) => {
         if (connection) {
             try {
                 await connection.rollback();
-            } catch {}
+            } catch { }
         }
 
         console.error('Erro ao criar técnico:', erro);
@@ -1841,7 +1976,7 @@ app.put('/api/tecnicos/:id', async (req, res) => {
         if (connection) {
             try {
                 await connection.rollback();
-            } catch {}
+            } catch { }
         }
 
         console.error(
@@ -1982,7 +2117,7 @@ app.delete('/api/tecnicos/:id', async (req, res) => {
         if (connection) {
             try {
                 await connection.rollback();
-            } catch {}
+            } catch { }
         }
 
         console.error(
@@ -2469,7 +2604,7 @@ app.delete('/api/clientes/:id', async (req, res) => {
         if (connection) {
             try {
                 await connection.rollback();
-            } catch {}
+            } catch { }
         }
 
         console.error(

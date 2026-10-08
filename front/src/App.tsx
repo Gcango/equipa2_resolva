@@ -2766,6 +2766,7 @@ function PedidosPage({
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editingPedido, setEditingPedido] = useState<Pedido | null>(null)
+  const [imagemPedido, setImagemPedido] = useState<File | null>(null)
 
   const [clientes, setClientes] = useState<ClientePedido[]>([])
   const [categoriasPedido, setCategoriasPedido] = useState<CategoriaPedido[]>([])
@@ -2836,7 +2837,7 @@ function PedidosPage({
               ? Number(pedido.tecnico_id)
               : undefined,
 
-          fotos: [],
+          fotos: Array.isArray(pedido.fotos) ? pedido.fotos : [],
           historico: []
         })
       )
@@ -2932,6 +2933,7 @@ function PedidosPage({
 
     setEditingPedido(null)
     setErroPedido('')
+    setImagemPedido(null)
 
     setForm({
       cliente_id:
@@ -3040,42 +3042,95 @@ function PedidosPage({
 
     setAGuardar(true)
 
+
     try {
+      // ==================================================
+      // 1. DEFINIR O ENDEREÇO DO BACKEND
+      // ==================================================
+
       const url = editingPedido
         ? `http://localhost:3000/api/pedidos/${editingPedido.id}`
         : 'http://localhost:3000/api/pedidos'
 
-      const resposta = await fetch(
-        url,
-        {
-          method:
-            editingPedido
-              ? 'PUT'
-              : 'POST',
+      // ==================================================
+      // 2. PREPARAR OS DADOS DO PEDIDO
+      // ==================================================
+
+      const dadosPedido = {
+        cliente_id: Number(form.cliente_id),
+        categoria_id: Number(form.categoria_id),
+        descricao: form.descricao.trim(),
+        morada: form.morada.trim(),
+        cidade: form.cidade.trim(),
+        data: form.data,
+        status: form.status,
+        prioridade: form.prioridade,
+
+        tecnico_id: form.tecnico_id
+          ? Number(form.tecnico_id)
+          : null
+      }
+
+      let resposta: Response
+
+      // ==================================================
+      // 3. CRIAR NOVO PEDIDO COM FOTOGRAFIA
+      // ==================================================
+
+      if (!editingPedido) {
+
+        const formData = new FormData()
+
+        // Adicionar os campos do pedido
+        Object.entries(dadosPedido).forEach(
+          ([chave, valor]) => {
+            formData.append(
+              chave,
+              valor === null ? '' : String(valor)
+            )
+          }
+        )
+
+        // Adicionar fotografia, se existir
+        if (imagemPedido) {
+          formData.append(
+            'imagem',
+            imagemPedido
+          )
+        }
+
+        // Enviar pedido para o backend
+        resposta = await fetch(url, {
+          method: 'POST',
+          body: formData
+        })
+
+      } else {
+
+        // ==================================================
+        // 4. EDITAR PEDIDO EXISTENTE
+        // ==================================================
+
+        resposta = await fetch(url, {
+          method: 'PUT',
 
           headers: {
             'Content-Type': 'application/json'
           },
 
-          body: JSON.stringify({
-            cliente_id: Number(form.cliente_id),
-            categoria_id: Number(form.categoria_id),
-            descricao: form.descricao.trim(),
-            morada: form.morada.trim(),
-            cidade: form.cidade.trim(),
-            data: form.data,
-            status: form.status,
-            prioridade: form.prioridade,
+          body: JSON.stringify(dadosPedido)
+        })
+      }
 
-            tecnico_id:
-              form.tecnico_id
-                ? Number(form.tecnico_id)
-                : null
-          })
-        }
-      )
+      // ==================================================
+      // 5. RECEBER RESPOSTA DO BACKEND
+      // ==================================================
 
       const dados = await resposta.json()
+
+      // ==================================================
+      // 6. VERIFICAR SE EXISTIU ALGUM ERRO
+      // ==================================================
 
       if (!resposta.ok) {
         setErroPedido(
@@ -3084,6 +3139,7 @@ function PedidosPage({
         )
         return
       }
+
 
       await carregarPedidos()
       fecharFormulario()
@@ -3486,9 +3542,27 @@ function PedidosPage({
                 }}
               >
                 <td
-                  onClick={() =>
-                    setSelectedPedido(p)
-                  }
+                  onClick={async () => {
+                    try {
+                      const resposta = await fetch(
+                        `http://localhost:3000/api/pedidos/${p.id}`
+                      )
+
+                      if (!resposta.ok) {
+                        throw new Error('Erro ao carregar os detalhes do pedido.')
+                      }
+
+                      const pedidoCompleto = await resposta.json()
+
+                      setSelectedPedido({
+                        ...p,
+                        fotos: pedidoCompleto.fotos ?? []
+                      })
+                    } catch (erro) {
+                      console.error('Erro ao carregar fotografias:', erro)
+                      setSelectedPedido(p)
+                    }
+                  }}
                   style={{
                     padding: '11px 14px',
                     fontSize: 12,
@@ -3604,9 +3678,29 @@ function PedidosPage({
                   }}
                 >
                   <button
-                    onClick={() =>
-                      setSelectedPedido(p)
-                    }
+
+                    onClick={async () => {
+                      try {
+                        const resposta = await fetch(
+                          `http://localhost:3000/api/pedidos/${p.id}`
+                        )
+
+                        if (!resposta.ok) {
+                          throw new Error('Erro ao carregar o pedido.')
+                        }
+
+                        const pedidoCompleto = await resposta.json()
+
+                        setSelectedPedido({
+                          ...p,
+                          fotos: pedidoCompleto.fotos ?? []
+                        })
+                      } catch (erro) {
+                        console.error('Erro ao carregar pedido:', erro)
+                        setSelectedPedido(p)
+                      }
+                    }}
+
                     style={{
                       padding: '5px 8px',
                       borderRadius: 6,
@@ -3819,6 +3913,52 @@ function PedidosPage({
                     resize: 'vertical'
                   }}
                 />
+              </div>
+
+              {/* FOTOGRAFIA DO PROBLEMA */}
+              <div>
+                <label style={labelStyle}>
+                  Fotografia do problema (opcional)
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={e => {
+                    const ficheiro = e.target.files?.[0]
+
+                    if (!ficheiro) return
+
+                    if (ficheiro.size > 5 * 1024 * 1024) {
+                      alert('A imagem não pode ultrapassar 5 MB.')
+                      e.target.value = ''
+                      return
+                    }
+
+                    setImagemPedido(ficheiro)
+                  }}
+                  style={inputStyle}
+                />
+
+                {imagemPedido && (
+                  <div style={{ marginTop: 10 }}>
+                    <span>{imagemPedido.name}</span>
+
+                    <button
+                      type="button"
+                      onClick={() => setImagemPedido(null)}
+                      style={{
+                        marginLeft: 12,
+                        color: '#DC2626',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -4226,6 +4366,40 @@ function PedidosPage({
               {selectedPedido.tecnico ||
                 'Sem técnico atribuído'}
             </div>
+
+
+            {selectedPedido.fotos && selectedPedido.fotos.length > 0 && (
+              <div style={{ marginTop: 20, marginBottom: 20 }}>
+                <h4 style={{ marginBottom: 12, color: '#0D1B2A' }}>
+                  Fotografias do problema
+                </h4>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                  {selectedPedido.fotos.map((foto, index) => (
+                    <a
+                      key={index}
+                      href={`http://localhost:3000${foto}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        src={`http://localhost:3000${foto}`}
+                        alt={`Fotografia ${index + 1} do pedido`}
+                        style={{
+                          width: 160,
+                          height: 120,
+                          objectFit: 'cover',
+                          borderRadius: 10,
+                          border: '1px solid #E4E9F0',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
 
             {role === 'tecnico' && (
               <div
