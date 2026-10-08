@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import heroVideo from './assets/hero-video.mp4'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin)
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type Screen = 'landing' | 'login' | 'register' | 'forgot' | 'app'
