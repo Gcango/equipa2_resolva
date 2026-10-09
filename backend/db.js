@@ -15,13 +15,16 @@ const pool = mysql.createPool({
 
     // Ativa SSL quando DB_SSL=true
     ...(process.env.DB_SSL === 'true'
-        ? {
-            ssl: {
-                minVersion: 'TLSv1.2',
-                rejectUnauthorized: true
-            }
+    ? {
+        ssl: {
+            ca: require('fs').readFileSync(
+                require('path').join(__dirname, 'ca.pem')
+            ),
+            minVersion: 'TLSv1.2',
+            rejectUnauthorized: true
         }
-        : {}),
+    }
+    : {}),
 
     // Mantém as datas como texto
     dateStrings: true
