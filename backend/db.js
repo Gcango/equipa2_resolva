@@ -1,4 +1,5 @@
-// Carrega as variáveis do ficheiro .env
+
+ // Carrega as variáveis do ficheiro .env
 require('dotenv').config();
 
 // Biblioteca para comunicar com MariaDB/MySQL
@@ -12,8 +13,17 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
 
-    // Mantém DATE/DATETIME/TIMESTAMP como texto
-    // e evita alterações provocadas pelo fuso horário
+    // Ativa SSL quando DB_SSL=true
+    ...(process.env.DB_SSL === 'true'
+        ? {
+            ssl: {
+                minVersion: 'TLSv1.2',
+                rejectUnauthorized: true
+            }
+        }
+        : {}),
+
+    // Mantém as datas como texto
     dateStrings: true
 });
 
