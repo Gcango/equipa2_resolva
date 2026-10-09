@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -124,65 +124,24 @@ app.post('/api/login', async (req, res) => {
         const utilizador = utilizadores[0];
 
         // ==================================================
-        // 3. VERIFICAR PASSWORD
+        // 3. VERIFICAR PASSWORD COM BCRYPT
         // ==================================================
 
-        let passwordCorreta = false;
+        const passwordGuardada = utilizador.password_hash || '';
 
-        const passwordGuardada =
-            utilizador.password_hash || '';
-
-        // Verificar se a password já está protegida
-        // com bcrypt
+        // Apenas aceitar palavras-passe protegidas com bcrypt
         const usaBcrypt =
             passwordGuardada.startsWith('$2a$') ||
             passwordGuardada.startsWith('$2b$') ||
             passwordGuardada.startsWith('$2y$');
 
+        let passwordCorreta = false;
+
         if (usaBcrypt) {
-
-            // ==================================================
-            // PASSWORD PROTEGIDA COM BCRYPT
-            // ==================================================
-
             passwordCorreta = await bcrypt.compare(
                 password,
                 passwordGuardada
             );
-
-        } else {
-
-            // ==================================================
-            // PASSWORD ANTIGA EM TEXTO SIMPLES
-            // ==================================================
-            //
-            // Esta parte é temporária.
-            // Permite que utilizadores antigos façam login.
-            //
-
-            passwordCorreta =
-                password === passwordGuardada;
-
-            // ==================================================
-            // MIGRAR AUTOMATICAMENTE PARA BCRYPT
-            // ==================================================
-
-            if (passwordCorreta) {
-
-                const novoHash = await bcrypt.hash(
-                    password,
-                    10
-                );
-
-                await db.query(`
-                    UPDATE utilizadores
-                    SET password_hash = ?
-                    WHERE id = ?
-                `, [
-                    novoHash,
-                    utilizador.id
-                ]);
-            }
         }
 
         // ==================================================
